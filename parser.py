@@ -38,12 +38,21 @@ def parseNaFaRecord(rec, subjDict, regionName):
   subjKey = rec.id.replace("_" + regionName, "")
   
   coordinateMatch = [match for match in re.finditer(str(cleanSeq), str(subjDict[subjKey]))]
-  if len(coordinateMatch) > 1:
+  if len(coordinateMatch) == 0:
+    return None
+
+  elif len(coordinateMatch) > 2:
     print("More than one pattern found for: {}".format(rec.id))
     return None
-  elif len(coordinateMatch) == 0:
-    return None
-  
+
+  elif len(coordinateMatch) == 2:
+    if regionName == "3LTR" and coordinateMatch[1].start() > coordinateMatch[0].start():
+      coordinateMatch = [coordinateMatch[1]]
+    elif regionName == "5LTR" and coordinateMatch[0].start() < coordinateMatch[1].start():
+      coordinateMatch = [coordinateMatch[0]]
+    else:
+      print("Subject sequence likely reversed for: {}".format(rec.id))
+
   # return as 0 index
   returnObj = {
     "subj": subjKey,
