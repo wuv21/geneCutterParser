@@ -24,7 +24,7 @@ python parser.py --subjectSequences my.fasta --runID="A01" --geneCutterResults g
 ## Arguments
 > `--subjectSequences`
 
-(required) Fasta file. HIV sequences used for input into Gene Cutter. Fasta record names must match original input.
+(required) Fasta file. HIV sequences used for input into Gene Cutter. Fasta record names must match original input. Fasta record IDs should not contain "HXB2" in its name.
 
 > `--runID`
 
