@@ -21,7 +21,6 @@ Parses results HIV LANL Database Gene Cutter tool to get coordinates for potenti
 python parser.py --subjectSequences my.fasta --runID="A01" --geneCutterResults geneCutterResultsDirectory
 ```
 
-
 ## Arguments
 > `--subjectSequences`
 
@@ -38,3 +37,21 @@ python parser.py --subjectSequences my.fasta --runID="A01" --geneCutterResults g
 > `--outputDir`
 
 (optional) Output folder. [defaults to current directory]
+
+## Output
+TSV file (example shown below) with the following information:
+- annotation: HIV gene/region
+- startPos: start position on subject genome (0-indexing)
+- endPos: end position on subject genome (0-indexing; inclusive)
+- genome: name of genome as derived from `--subjectSequences`
+
+
+```
+annotation	startPos	endPos	genome
+Pol	1311	4323	testGenome1
+Pol	1311	4323	testGenome2
+Genome	0	8917	testGenome1
+Genome	0	8938	testGenome2
+Genome	0	2616	testGenome3
+Genome	0	2595	testGenome4
+```
