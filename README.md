@@ -1,6 +1,9 @@
 # geneCutterParser
 Parses results HIV LANL Database Gene Cutter tool to get coordinates for potential alignments
 
+![example workflow](https://github.com/wuv21/geneCutterParser/actions/workflows/codeql-analysis.yml/badge.svg)
+
+
 ## Requirements:
 - Check requirements.txt for installation dependencies
 - Python 3+
