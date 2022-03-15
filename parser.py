@@ -1,6 +1,7 @@
 import argparse
 import os
 from Bio import SeqIO
+from Bio import pairwise2
 import re
 from csv import writer
 
@@ -36,30 +37,51 @@ def parseNaFaRecord(rec, subjDict, regionName):
     return None
 
   subjKey = rec.id.replace("_" + regionName, "")
-  
-  coordinateMatch = [match for match in re.finditer(str(cleanSeq), str(subjDict[subjKey]))]
-  if len(coordinateMatch) == 0:
-    return None
 
-  elif len(coordinateMatch) > 2:
-    print("More than one pattern found for: {}".format(rec.id))
-    return None
+  # splicing aware detection
+  if regionName in ["Rev", "Tat"]:
+    alns = pairwise2.align.localmd(subjDict[subjKey], cleanSeq, 3, -3, -100, -100, -5, 0)
 
-  elif len(coordinateMatch) == 2:
-    if regionName == "3LTR" and coordinateMatch[1].start() > coordinateMatch[0].start():
-      coordinateMatch = [coordinateMatch[1]]
-    elif regionName == "5LTR" and coordinateMatch[0].start() < coordinateMatch[1].start():
-      coordinateMatch = [coordinateMatch[0]]
-    else:
-      print("Subject sequence likely reversed for: {}".format(rec.id))
+    if len(alns) != 1:
+      return None
 
-  # return as 0 index
-  returnObj = {
-    "subj": subjKey,
-    "hivRegion": regionName,
-    "subjStart": coordinateMatch[0].start(),
-    "subjEnd": coordinateMatch[0].end()
-  }
+    seqBGapped = alns[0].seqB
+    matches = re.finditer(r"([^-]+)", seqBGapped)
+    matchesCondensed = [[x.start(), x.end()] for x in matches]
+    
+    returnObj = []
+    for y in matchesCondensed:
+      returnObj.append({
+        "subj": subjKey,
+        "hivRegion": regionName,
+        "subjStart": y[0],
+        "subjEnd": y[1] - 1        
+      })
+
+  else:
+    coordinateMatch = [match for match in re.finditer(str(cleanSeq), str(subjDict[subjKey]))]
+    if len(coordinateMatch) == 0:
+      return None
+
+    elif len(coordinateMatch) > 2:
+      print("More than one pattern found for: {}".format(rec.id))
+      return None
+
+    elif len(coordinateMatch) == 2:
+      if regionName == "3LTR" and coordinateMatch[1].start() > coordinateMatch[0].start():
+        coordinateMatch = [coordinateMatch[1]]
+      elif regionName == "5LTR" and coordinateMatch[0].start() < coordinateMatch[1].start():
+        coordinateMatch = [coordinateMatch[0]]
+      else:
+        print("Subject sequence likely reversed for: {}".format(rec.id))
+
+    # return as 0 index
+    returnObj = {
+      "subj": subjKey,
+      "hivRegion": regionName,
+      "subjStart": coordinateMatch[0].start(),
+      "subjEnd": coordinateMatch[0].end() - 1
+    }
 
   return returnObj
 
@@ -75,7 +97,11 @@ def parseNaFaFiles(fns, parentDir, subjDict):
     for r in records:
       res = parseNaFaRecord(r, subjDict, regionName)
       if res is not None:
-        finalResults.append(res)
+        if type(res) == list:
+          for x in res:
+            finalResults.append(x)
+        else:  
+          finalResults.append(res)
 
   return finalResults
 
